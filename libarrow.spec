@@ -17,7 +17,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-%bcond_without use_flight
+%bcond_with use_flight
 %bcond_with use_plasma
 %bcond_with use_gandiva
 %bcond_with use_mimalloc
@@ -30,14 +30,14 @@
 %bcond_without have_utf8proc
 
 Name:		libarrow
-Version:	7.0.0
+Version:	8.0.0
 Release:	1%{?dist}
 Summary:	A toolbox for accelerated data interchange and in-memory processing
 License:	ASL 2.0
 URL:		https://arrow.apache.org/
-Requires:	%{name}-doc = %{version}-%{release}
 Source0:	https://dist.apache.org/repos/dist/release/arrow/arrow-%{version}/apache-arrow-%{version}.tar.gz
 Patch0001:	0001-cpp-CMakeLists.txt.patch
+Patch0002:	0002-cpp_src_arrow_util_utf8.h.patch
 # Apache ORC (liborc) has numerous compile errors and apparently assumes
 # a 64-bit build and runtime environment. This is only consumer of the liborc
 # package, and in turn the only consumer of this and liborc is Ceph, which
@@ -59,14 +59,17 @@ BuildRequires:	flex
 BuildRequires:	gcc-c++
 BuildRequires:	gflags-devel
 BuildRequires:	glog-devel
+%if %{with use_flight}
 BuildRequires:	grpc-devel
 BuildRequires:	grpc-plugins
+%endif
 BuildRequires:	libzstd-devel
 BuildRequires:	lz4-devel
 BuildRequires:	openssl-devel
 BuildRequires:	pkgconfig
-BuildRequires:	python3-devel
-BuildRequires:	python3-numpy
+BuildRequires:	python38-libs
+BuildRequires:	python38-devel
+BuildRequires:	python38-numpy
 BuildRequires:	xsimd-devel
 BuildRequires:	abseil-cpp-devel
 BuildRequires:	c-ares-devel
@@ -118,7 +121,7 @@ Documentation files for Apache Arrow C++.
 
 %package devel
 Summary:	Libraries and header files for Apache Arrow C++
-Requires:	%{name}%{?_isa} = %{version}-%{release}
+Requires:	%{name} = %{version}-%{release}
 Requires:	brotli-devel
 Requires:	bzip2-devel
 Requires:	libzstd-devel
@@ -140,7 +143,7 @@ Requires:	zlib-devel
 Libraries and header files for Apache Arrow C++.
 
 %files devel
-%dir %{_includedir}/arrow/
+%dir %{_includedir}/arrow
      %{_includedir}/arrow/*
 %exclude %{_includedir}/arrow/dataset/
 %if %{with use_flight}
@@ -150,13 +153,17 @@ Libraries and header files for Apache Arrow C++.
 %exclude %{_includedir}/arrow/python/
 %exclude %{_libdir}/cmake/arrow/FindBrotli.cmake
 %exclude %{_libdir}/cmake/arrow/FindLz4.cmake
+%if %{with use_flight}
 %exclude %{_libdir}/cmake/arrow/FindORC.cmake
+%endif
 %exclude %{_libdir}/cmake/arrow/FindSnappy.cmake
-%exclude %{_libdir}/cmake/arrow/FindgRPCAlt.cmake
 %exclude %{_libdir}/cmake/arrow/Findre2Alt.cmake
+%if %{with use_flight}
+%exclude %{_libdir}/cmake/arrow/FindgRPCAlt.cmake
 %exclude %{_libdir}/cmake/arrow/Findutf8proc.cmake
+%endif
 %exclude %{_libdir}/cmake/arrow/Findzstd.cmake
-%dir %{_libdir}/cmake/arrow/
+%dir %{_libdir}/cmake/arrow
      %{_libdir}/cmake/arrow/ArrowConfig*.cmake
      %{_libdir}/cmake/arrow/ArrowOptions.cmake
      %{_libdir}/cmake/arrow/ArrowTargets*.cmake
@@ -167,14 +174,16 @@ Libraries and header files for Apache Arrow C++.
 %{_libdir}/pkgconfig/arrow-csv.pc
 %{_libdir}/pkgconfig/arrow-filesystem.pc
 %{_libdir}/pkgconfig/arrow-json.pc
+%if %{with use_flight}
 %{_libdir}/pkgconfig/arrow-orc.pc
+%endif
 %{_libdir}/pkgconfig/arrow.pc
 
 #--------------------------------------------------------------------
 
 %package dataset-libs
 Summary:	C++ library to read and write semantic datasets
-Requires:	%{name}%{?_isa} = %{version}-%{release}
+Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-doc = %{version}-%{release}
 
 %description dataset-libs
@@ -187,14 +196,13 @@ This package contains the libraries for Apache Arrow dataset.
 
 %package dataset-devel
 Summary:	Libraries and header files for Apache Arrow dataset
-Requires:	%{name}%{?_isa} = %{version}-%{release}
-Requires:	%{name}-dataset-libs%{?_isa} = %{version}-%{release}
+Requires:	%{name}-dataset-libs = %{version}-%{release}
 
 %description dataset-devel
 Libraries and header files for Apache Arrow dataset.
 
 %files dataset-devel
-%dir %{_includedir}/arrow/dataset/
+%dir %{_includedir}/arrow/dataset
      %{_includedir}/arrow/dataset/*
 %{_libdir}/cmake/arrow/ArrowDatasetConfig*.cmake
 %{_libdir}/cmake/arrow/ArrowDatasetTargets*.cmake
@@ -207,7 +215,7 @@ Libraries and header files for Apache Arrow dataset.
 %if %{with use_flight}
 %package flight-libs
 Summary:	C++ library for fast data transport
-Requires:	%{name}%{?_isa} = %{version}-%{release}
+Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-doc = %{version}-%{release}
 Requires:	openssl
 
@@ -217,23 +225,21 @@ This package contains the libraries for Apache Arrow Flight.
 %files flight-libs
 %{_libdir}/libarrow_flight.so.*
 %{_libdir}/libarrow-flight-glib.so.*
-%dir %{_libdir}/girepository-1.0/
-     %{_libdir}/girepository-1.0/ArrowFlight-1.0.typelib
+%{_libdir}/girepository-1.0/ArrowFlight-1.0.typelib
 
 #--------------------------------------------------------------------
 
 %package flight-devel
 Summary:	Libraries and header files for Apache Arrow Flight
-Requires:	%{name}%{?_isa} = %{version}-%{release}
-Requires:	%{name}-flight-libs%{?_isa} = %{version}-%{release}
+Requires:	%{name}-flight-libs = %{version}-%{release}
 
 %description flight-devel
 Libraries and header files for Apache Arrow Flight.
 
 %files flight-devel
-%dir %{_includedir}/arrow/flight/
+%dir %{_includedir}/arrow/flight
      %{_includedir}/arrow/flight/*
-%dir %{_includedir}/arrow-flight-glib/
+%dir %{_includedir}/arrow-flight-glib
      %{_includedir}/arrow-flight-glib/*
 %{_libdir}/cmake/arrow/ArrowFlightConfig*.cmake
 %{_libdir}/cmake/arrow/ArrowFlightTargets*.cmake
@@ -249,7 +255,7 @@ Libraries and header files for Apache Arrow Flight.
 %if %{with use_gandiva}
 %package -n gandiva-libs
 Summary:	C++ library for compiling and evaluating expressions
-Requires:	%{name}%{?_isa} = %{version}-%{release}
+Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-doc = %{version}-%{release}
 Requires:	ncurses-libs
 
@@ -263,15 +269,15 @@ This package contains the libraries for Gandiva.
 
 %package -n gandiva-devel
 Summary:	Libraries and header files for Gandiva
-Requires:	gandiva-libs%{?_isa} = %{version}-%{release}
+Requires:	gandiva-libs = %{version}-%{release}
 Requires:	llvm-devel
 
 %description -n gandiva-devel
 Libraries and header files for Gandiva.
 
 %files -n gandiva-devel
-%dir %{_includedir}/gandiva/
-     %{_includedir}/gandiva/
+%dir %{_includedir}/gandiva
+     %{_includedir}/gandiva/*
 %{_libdir}/cmake/arrow/GandivaConfig*.cmake
 %{_libdir}/cmake/arrow/GandivaTargets*.cmake
 %{_libdir}/cmake/arrow/FindGandiva.cmake
@@ -283,10 +289,9 @@ Libraries and header files for Gandiva.
 
 %package python-libs
 Summary:	Python integration library for Apache Arrow
-Requires:	%{name}%{?_isa} = %{version}-%{release}
+Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-doc = %{version}-%{release}
-Requires:	%{name}%{?_isa} = %{version}-%{release}
-Requires:	python3-numpy
+Requires:	python38-numpy
 
 %description python-libs
 This package contains the Python integration library for Apache Arrow.
@@ -298,16 +303,17 @@ This package contains the Python integration library for Apache Arrow.
 
 %package python-devel
 Summary:	Libraries and header files for Python integration library
-Requires:	%{name}%{?_isa} = %{version}-%{release}
-Requires:	%{name}-devel%{?_isa} = %{version}-%{release}
-Requires:	%{name}-python-libs%{?_isa} = %{version}-%{release}
-Requires:	python3-devel
+Requires:	%{name}-devel = %{version}-%{release}
+Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}-python-libs = %{version}-%{release}
+Requires:	python38-libs
+Requires:	python38-devel
 
 %description python-devel
 Libraries and header files for Python integration library for Apache Arrow.
 
 %files python-devel
-%dir %{_includedir}/arrow/python/
+%dir %{_includedir}/arrow/python
      %{_includedir}/arrow/python/*
 %exclude %{_includedir}/arrow/python/flight.h
 %{_libdir}/cmake/arrow/ArrowPythonConfig*.cmake
@@ -321,9 +327,8 @@ Libraries and header files for Python integration library for Apache Arrow.
 %if %{with use_flight}
 %package python-flight-libs
 Summary:	Python integration library for Apache Arrow Flight
-Requires:	%{name}%{?_isa} = %{version}-%{release}
-Requires:	%{name}-flight-libs%{?_isa} = %{version}-%{release}
-Requires:	%{name}-python-libs%{?_isa} = %{version}-%{release}
+Requires:	%{name}-flight-libs = %{version}-%{release}
+Requires:	%{name}-python-libs = %{version}-%{release}
 Requires:	%{name}-doc = %{version}-%{release}
 
 %description python-flight-libs
@@ -336,10 +341,9 @@ This package contains the Python integration library for Apache Arrow Flight.
 
 %package python-flight-devel
 Summary:	Libraries and header files for Python integration
-Requires:	%{name}%{?_isa} = %{version}-%{release}
-Requires:	%{name}-flight-devel%{?_isa} = %{version}-%{release}
-Requires:	%{name}-python-devel%{?_isa} = %{version}-%{release}
-Requires:	%{name}-python-flight-libs%{?_isa} = %{version}-%{release}
+Requires:	%{name}-flight-devel = %{version}-%{release}
+Requires:	%{name}-python-devel = %{version}-%{release}
+Requires:	%{name}-python-flight-libs = %{version}-%{release}
 
 %description python-flight-devel
 Libraries and header files for Python integration library for
@@ -359,7 +363,7 @@ Apache Arrow Flight.
 
 %package -n plasma-libs
 Summary:	Runtime libraries for Plasma in-memory object store
-Requires:	%{name}%{?_isa} = %{version}-%{release}
+Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-doc = %{version}-%{release}
 
 %description -n plasma-libs
@@ -372,7 +376,7 @@ This package contains the libraries for Plasma in-memory object store.
 
 %package -n plasma-store-server
 Summary:	Server for Plasma in-memory object store
-Requires:	plasma-libs%{?_isa} = %{version}-%{release}
+Requires:	plasma-libs = %{version}-%{release}
 Requires:	%{name}-doc = %{version}-%{release}
 
 %description -n plasma-store-server
@@ -385,18 +389,16 @@ This package contains the server for Plasma in-memory object store.
 
 %package -n plasma-libs-devel
 Summary:	Libraries and header files for Plasma in-memory object store
-Requires:	plasma-libs%{?_isa} = %{version}-%{release}
+Requires:	plasma-libs = %{version}-%{release}
 # plasma-devel a.k.a. kdelibs-devel provides
 # conflicts with all versions of plasma-devel %%{_libdir}/libplasma.so
 BuildConflicts: plasma-devel 
-# conflicts with all versions of plasma-workspace-devel %%{_includedir}/*
-BuildConflicts: plasma-workspace-devel
 
 %description -n plasma-libs-devel
 Libraries and header files for Plasma in-memory object store.
 
 %files -n plasma-libs-devel
-%dir %{_includedir}/plasma/
+%dir %{_includedir}/plasma
      %{_includedir}/plasma/*
 %{_libdir}/cmake/arrow/PlasmaConfig*.cmake
 %{_libdir}/cmake/arrow/PlasmaTargets*.cmake
@@ -410,7 +412,7 @@ Libraries and header files for Plasma in-memory object store.
 %package -n parquet-libs
 Summary:	Runtime libraries for Apache Parquet C++
 Requires:	boost-program-options
-Requires:	%{name}%{?_isa} = %{version}-%{release}
+Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-doc = %{version}-%{release}
 Requires:	openssl
 
@@ -424,15 +426,14 @@ This package contains the libraries for Apache Parquet C++.
 
 %package -n parquet-libs-devel
 Summary:	Libraries and header files for Apache Parquet C++
-Requires:	%{name}%{?_isa} = %{version}-%{release}
-Requires:	parquet-libs%{?_isa} = %{version}-%{release}
+Requires:	parquet-libs = %{version}-%{release}
 Requires:	zlib-devel
 
 %description -n parquet-libs-devel
 Libraries and header files for Apache Parquet C++.
 
 %files -n parquet-libs-devel
-%dir %{_includedir}/parquet/
+%dir %{_includedir}/parquet
      %{_includedir}/parquet/*
 %{_libdir}/cmake/arrow/ParquetConfig*.cmake
 %{_libdir}/cmake/arrow/ParquetTargets*.cmake
@@ -444,7 +445,7 @@ Libraries and header files for Apache Parquet C++.
 
 %package glib-libs
 Summary:	Runtime libraries for Apache Arrow GLib
-Requires:	%{name}%{?_isa} = %{version}-%{release}
+Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-doc = %{version}-%{release}
 
 %description glib-libs
@@ -452,17 +453,15 @@ This package contains the libraries for Apache Arrow GLib.
 
 %files glib-libs
 %{_libdir}/libarrow-glib.so.*
-%dir %{_libdir}/girepository-1.0/
-     %{_libdir}/girepository-1.0/Arrow-1.0.typelib
+%{_libdir}/girepository-1.0/Arrow-1.0.typelib
 %exclude %{_datadir}/doc/arrow-glib/*
 
 #--------------------------------------------------------------------
 
 %package glib-devel
 Summary:	Libraries and header files for Apache Arrow GLib
-Requires:	%{name}%{?_isa} = %{version}-%{release}
-Requires:	%{name}-devel%{?_isa} = %{version}-%{release}
-Requires:	%{name}-glib-libs%{?_isa} = %{version}-%{release}
+Requires:	%{name}-devel = %{version}-%{release}
+Requires:	%{name}-glib-libs = %{version}-%{release}
 Requires:	glib2-devel
 Requires:	gobject-introspection-devel
 
@@ -470,16 +469,18 @@ Requires:	gobject-introspection-devel
 Libraries and header files for Apache Arrow GLib.
 
 %files glib-devel
-%dir %{_includedir}/arrow-glib/
+%dir %{_includedir}/arrow-glib
      %{_includedir}/arrow-glib/*
 %{_libdir}/libarrow-glib.so
 %{_libdir}/pkgconfig/arrow-glib.pc
+%if %{with use_flight}
 %{_libdir}/pkgconfig/arrow-orc-glib.pc
-%dir %{_datadir}/arrow-glib/
-     %{_datadir}/arrow-glib/example/*
-%dir %{_datadir}/gir-1.0/
-     %{_datadir}/gir-1.0/Arrow-1.0.gir
-     %{_datadir}/gir-1.0/ArrowFlight-1.0.gir
+%endif
+%{_datadir}/arrow-glib/example/
+%{_datadir}/gir-1.0/Arrow-1.0.gir
+%if %{with use_flight}
+%{_datadir}/gir-1.0/ArrowFlight-1.0.gir
+%endif
 
 #--------------------------------------------------------------------
 
@@ -490,20 +491,19 @@ Summary:	Documentation for Apache Arrow GLib
 Documentation for Apache Arrow GLib.
 
 %files glib-doc
-%dir %{_datadir}/gtk-doc/
-%dir %{_datadir}/gtk-doc/html/
-%dir %{_datadir}/gtk-doc/html/arrow-glib/
+%dir %{_datadir}/gtk-doc/html/arrow-glib
      %{_datadir}/gtk-doc/html/arrow-glib/*
-%dir %{_datadir}/gtk-doc/html/arrow-flight-glib/
+%if %{with use_flight}
+%dir %{_datadir}/gtk-doc/html/arrow-flight-glib
      %{_datadir}/gtk-doc/html/arrow-flight-glib/*
+%endif
 
 #--------------------------------------------------------------------
 
 %package dataset-glib-libs
 Summary:	Runtime libraries for Apache Arrow dataset GLib
-Requires:	%{name}%{?_isa} = %{version}-%{release}
-Requires:	%{name}-dataset-libs%{?_isa} = %{version}-%{release}
-Requires:	%{name}-glib-libs%{?_isa} = %{version}-%{release}
+Requires:	%{name}-dataset-libs = %{version}-%{release}
+Requires:	%{name}-glib-libs = %{version}-%{release}
 Requires:	%{name}-doc = %{version}-%{release}
 
 %description dataset-glib-libs
@@ -511,28 +511,25 @@ This package contains the libraries for Apache Arrow dataset GLib.
 
 %files dataset-glib-libs
 %{_libdir}/libarrow-dataset-glib.so.*
-%dir %{_libdir}/girepository-1.0/
-     %{_libdir}/girepository-1.0/ArrowDataset-1.0.typelib
+%{_libdir}/girepository-1.0/ArrowDataset-1.0.typelib
 
 #--------------------------------------------------------------------
 
 %package dataset-glib-devel
 Summary:	Libraries and header files for Apache Arrow dataset GLib
-Requires:	%{name}%{?_isa} = %{version}-%{release}
-Requires:	%{name}-dataset-devel%{?_isa} = %{version}-%{release}
-Requires:	%{name}-glib-devel%{?_isa} = %{version}-%{release}
-Requires:	%{name}-dataset-glib-libs%{?_isa} = %{version}-%{release}
+Requires:	%{name}-dataset-devel = %{version}-%{release}
+Requires:	%{name}-glib-devel = %{version}-%{release}
+Requires:	%{name}-dataset-glib-libs = %{version}-%{release}
 
 %description dataset-glib-devel
 Libraries and header files for Apache Arrow dataset GLib.
 
 %files dataset-glib-devel
-%dir %{_includedir}/arrow-dataset-glib/
-     %{_includedir}/arrow-dataset-glib/*
+%dir %{_includedir}/arrow-dataset-glib
+     %{_includedir}/arrow-dataset-glib/
 %{_libdir}/libarrow-dataset-glib.so
 %{_libdir}/pkgconfig/arrow-dataset-glib.pc
-%dir %{_datadir}/gir-1.0/
-     %{_datadir}/gir-1.0/ArrowDataset-1.0.gir
+%{_datadir}/gir-1.0/ArrowDataset-1.0.gir
 
 #--------------------------------------------------------------------
 
@@ -543,7 +540,7 @@ Summary:	Documentation for Apache Arrow dataset GLib
 Documentation for Apache Arrow dataset GLib.
 
 %files dataset-glib-doc
-%dir %{_datadir}/gtk-doc/html/arrow-dataset-glib/
+%dir %{_datadir}/gtk-doc/html/arrow-dataset-glib
      %{_datadir}/gtk-doc/html/arrow-dataset-glib/*
 
 #--------------------------------------------------------------------
@@ -551,8 +548,8 @@ Documentation for Apache Arrow dataset GLib.
 %if %{with use_gandiva}
 %package -n gandiva-glib-libs
 Summary:	Runtime libraries for Gandiva GLib
-Requires:	gandiva-libs%{?_isa} = %{version}-%{release}
-Requires:	%{name}-glib-libs%{?_isa} = %{version}-%{release}
+Requires:	gandiva-libs = %{version}-%{release}
+Requires:	%{name}-glib-libs = %{version}-%{release}
 Requires:	%{name}-doc = %{version}-%{release}
 
 %description -n gandiva-glib-libs
@@ -560,26 +557,24 @@ This package contains the libraries for Gandiva GLib.
 
 %files -n gandiva-glib-libs
 %{_libdir}/libgandiva-glib.so.*
-%dir %{_libdir}/girepository-1.0/
-     %{_libdir}/girepository-1.0/Gandiva-1.0.typelib
+%{_libdir}/girepository-1.0/Gandiva-1.0.typelib
 
 #--------------------------------------------------------------------
 
 %package -n gandiva-glib-devel
 Summary:	Libraries and header files for Gandiva GLib
-Requires:	gandiva-devel%{?_isa} = %{version}-%{release}
-Requires:	%{name}-glib-devel%{?_isa} = %{version}-%{release}
+Requires:	gandiva-devel = %{version}-%{release}
+Requires:	%{name}-glib-devel = %{version}-%{release}
 
 %description -n gandiva-glib-devel
 Libraries and header files for Gandiva GLib.
 
 %files -n gandiva-glib-devel
-%dir %{_includedir}/gandiva-glib/
+%dir %{_includedir}/gandiva-glib
      %{_includedir}/gandiva-glib/*
 %{_libdir}/libgandiva-glib.so
 %{_libdir}/pkgconfig/gandiva-glib.pc
-%dir %{_datadir}/gir-1.0/
-     %{_datadir}/gir-1.0/Gandiva-1.0.gir
+%{_datadir}/gir-1.0/Gandiva-1.0.gir
 
 #--------------------------------------------------------------------
 
@@ -590,7 +585,7 @@ Summary:	Documentation for Gandiva GLib
 Documentation for Gandiva GLib.
 
 %files -n gandiva-glib-doc
-%dir %{_datadir}/gtk-doc/html/gandiva-glib/
+%dir %{_datadir}/gtk-doc/html/gandiva-glib
      %{_datadir}/gtk-doc/html/gandiva-glib/*
 %endif
 
@@ -599,8 +594,8 @@ Documentation for Gandiva GLib.
 
 %package -n plasma-glib-libs
 Summary:	Runtime libraries for Plasma GLib
-Requires:	plasma-libs%{?_isa} = %{version}-%{release}
-Requires:	%{name}-glib-libs%{?_isa} = %{version}-%{release}
+Requires:	plasma-libs = %{version}-%{release}
+Requires:	%{name}-glib-libs = %{version}-%{release}
 Requires:	%{name}-doc = %{version}-%{release}
 
 %description -n plasma-glib-libs
@@ -608,27 +603,25 @@ This package contains the libraries for Plasma GLib.
 
 %files -n plasma-glib-libs
 %{_libdir}/libplasma-glib.so.*
-%dir %{_libdir}/girepository-1.0/
-     %{_libdir}/girepository-1.0/Plasma-1.0.typelib
+%{_libdir}/girepository-1.0/Plasma-1.0.typelib
 
 #--------------------------------------------------------------------
 
 %package -n plasma-glib-devel
 Summary:	Libraries and header files for Plasma GLib
-Requires:	plasma-devel%{?_isa} = %{version}-%{release}
-Requires:	plasma-glib-libs%{?_isa} = %{version}-%{release}
-Requires:	%{name}-glib-devel%{?_isa} = %{version}-%{release}
+Requires:	plasma-devel = %{version}-%{release}
+Requires:	plasma-glib-libs = %{version}-%{release}
+Requires:	%{name}-glib-devel = %{version}-%{release}
 
 %description -n plasma-glib-devel
 Libraries and header files for Plasma GLib.
 
 %files -n plasma-glib-devel
-%dir %{_includedir}/plasma-glib/
-     %{_includedir}/plasma-glib/*
+%dir %{_includedir}/plasma-glib
+     %{_includedir}/plasma-glib/
 %{_libdir}/libplasma-glib.so
 %{_libdir}/pkgconfig/plasma-glib.pc
-%dir %{_datadir}/gir-1.0/
-     %{_datadir}/gir-1.0/Plasma-1.0.gir
+%{_datadir}/gir-1.0/Plasma-1.0.gir
 
 #--------------------------------------------------------------------
 
@@ -639,7 +632,7 @@ Summary:	Documentation for Plasma GLib
 Documentation for Plasma GLib.
 
 %files -n plasma-glib-doc
-%dir %{_datadir}/gtk-doc/html/plasma-glib/
+%dir %{_datadir}/gtk-doc/html/plasma-glib
      %{_datadir}/gtk-doc/html/plasma-glib/*
 %endif
 
@@ -647,9 +640,8 @@ Documentation for Plasma GLib.
 
 %package -n parquet-glib-libs
 Summary:	Runtime libraries for Apache Parquet GLib
-Requires:	%{name}%{?_isa} = %{version}-%{release}
-Requires:	parquet-libs%{?_isa} = %{version}-%{release}
-Requires:	%{name}-glib-libs%{?_isa} = %{version}-%{release}
+Requires:	parquet-libs = %{version}-%{release}
+Requires:	%{name}-glib-libs = %{version}-%{release}
 Requires:	%{name}-doc = %{version}-%{release}
 
 %description -n parquet-glib-libs
@@ -657,28 +649,25 @@ This package contains the libraries for Apache Parquet GLib.
 
 %files -n parquet-glib-libs
 %{_libdir}/libparquet-glib.so.*
-%dir %{_libdir}/girepository-1.0/
-     %{_libdir}/girepository-1.0/Parquet-1.0.typelib
+%{_libdir}/girepository-1.0/Parquet-1.0.typelib
 
 #--------------------------------------------------------------------
 
 %package -n parquet-glib-devel
 Summary:	Libraries and header files for Apache Parquet GLib
-Requires:	%{name}%{?_isa} = %{version}-%{release}
-Requires:	parquet-libs-devel%{?_isa} = %{version}-%{release}
-Requires:	parquet-glib-libs%{?_isa} = %{version}-%{release}
-Requires:	%{name}-glib-devel%{?_isa} = %{version}-%{release}
+Requires:	parquet-devel = %{version}-%{release}
+Requires:	parquet-glib-libs = %{version}-%{release}
+Requires:	%{name}-glib-devel = %{version}-%{release}
 
 %description -n parquet-glib-devel
 Libraries and header files for Apache Parquet GLib.
 
 %files -n parquet-glib-devel
-%dir %{_includedir}/parquet-glib/
+%dir %{_includedir}/parquet-glib
      %{_includedir}/parquet-glib/*
 %{_libdir}/libparquet-glib.so
 %{_libdir}/pkgconfig/parquet-glib.pc
-%dir %{_datadir}/gir-1.0/
-     %{_datadir}/gir-1.0/Parquet-1.0.gir
+%{_datadir}/gir-1.0/Parquet-1.0.gir
 
 #--------------------------------------------------------------------
 
@@ -689,7 +678,7 @@ Summary:	Documentation for Apache Parquet GLib
 Documentation for Apache Parquet GLib.
 
 %files -n parquet-glib-doc
-%dir %{_datadir}/gtk-doc/html/parquet-glib/
+%dir %{_datadir}/gtk-doc/html/parquet-glib
      %{_datadir}/gtk-doc/html/parquet-glib/*
 
 #--------------------------------------------------------------------
@@ -699,9 +688,14 @@ Documentation for Apache Parquet GLib.
 
 %build
 pushd cpp
-%cmake \
+%cmake . \
 %if %{with use_flight}
   -DARROW_FLIGHT:BOOL=ON \
+  -DGRPC_SOURCE="SYSTEM" \
+  -DARROW_ORC:BOOL=OFF \
+%else
+  -DARROW_WITH_PROTOBUF:BOOL=OFF \
+  -DARROW_WITH_UTF8PROC:BOOL=OFF \
 %endif
 %if %{with use_gandiva}
   -DARROW_GANDIVA:BOOL=ON \
@@ -709,14 +703,12 @@ pushd cpp
 %if %{with use_mimalloc}
   -DARROW_MIMALLOC:BOOL=ON \
 %endif
-  -DARROW_ORC=ON \
   -DARROW_PARQUET:BOOL=ON \
 %if %{with use_plasma}
   -DARROW_PLASMA:BOOL=ON \
 %endif
   -DARROW_PYTHON:BOOL=ON \
   -DARROW_JEMALLOC:BOOL=OFF \
-  -DGRPC_SOURCE="SYSTEM" \
   -Dxsimd_SOURCE="SYSTEM" \
 %if %{with use_s3}
   -DARROW_S3:BOOL=ON \
@@ -743,6 +735,10 @@ pushd cpp
 export VERBOSE=1
 export GCC_COLORS=
 %cmake_build
+# put everything where meson can find it
+mkdir -p %{_target_platform}/relwithdebinfo
+ln -s ../src %{_target_platform}
+cp -p build/relwithdebinfo/lib*.so* %{_target_platform}/relwithdebinfo/
 popd
 
 pushd c_glib
@@ -766,6 +762,15 @@ popd
 #--------------------------------------------------------------------
 
 %changelog
+* Sun May 8 2022  Kaleb S. KEITHLEY <kkeithle [at] redhat.com> - 8.0.0-1
+- Apache Arrow 8.0.0 GA
+
+* Wed Apr 27 2022  Kaleb S. KEITHLEY <kkeithle [at] redhat.com> - 7.0.0-3
+- remove static libs everywhere, inc. from build
+
+* Wed Apr 27 2022  Kaleb S. KEITHLEY <kkeithle [at] redhat.com> - 7.0.0-2
+- %_libdir/cmake/arrow/* in -devel
+
 * Thu Jan 13 2022  Kaleb S. KEITHLEY <kkeithle [at] redhat.com> - 7.0.0-1
-- New upstream release.
+- latest upstream release.
 
