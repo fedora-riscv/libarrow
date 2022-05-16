@@ -31,7 +31,7 @@
 
 Name:		libarrow
 Version:	8.0.0
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	A toolbox for accelerated data interchange and in-memory processing
 License:	ASL 2.0
 URL:		https://arrow.apache.org/
@@ -767,6 +767,9 @@ popd
 #--------------------------------------------------------------------
 
 %changelog
+* Mon May 16 2022  Kaleb S. KEITHLEY <kkeithle [at] redhat.com> - 8.0.0-2
+- rebuild for grpc-1.46.1
+
 * Sun May 8 2022  Kaleb S. KEITHLEY <kkeithle [at] redhat.com> - 8.0.0-1
 - Arrow 8.0.0 GA
 
