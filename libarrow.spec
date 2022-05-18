@@ -31,14 +31,14 @@
 
 Name:		libarrow
 Version:	8.0.0
-Release:	2%{?dist}
+Release:	3%{?dist}
 Summary:	A toolbox for accelerated data interchange and in-memory processing
 License:	ASL 2.0
 URL:		https://arrow.apache.org/
 Requires:	%{name}-doc = %{version}-%{release}
 Source0:	https://dist.apache.org/repos/dist/release/arrow/arrow-%{version}/apache-arrow-%{version}.tar.gz
 Patch0001:	0001-cpp-CMakeLists.txt.patch
-Patch0002:	0002-cpp_src_arrow_util_utf8.h.patch
+# Patch0002:	0002-cpp_src_arrow_util_utf8.h.patch
 # Apache ORC (liborc) has numerous compile errors and apparently assumes
 # a 64-bit build and runtime environment. This is only consumer of the liborc
 # package, and in turn the only consumer of this and liborc is Ceph, which
@@ -767,8 +767,11 @@ popd
 #--------------------------------------------------------------------
 
 %changelog
+* Wed May 18 2022  Kaleb S. KEITHLEY <kkeithle [at] redhat.com> - 8.0.0-3
+- rebuild with xsimd-8.1.0
+
 * Mon May 16 2022  Kaleb S. KEITHLEY <kkeithle [at] redhat.com> - 8.0.0-2
-- rebuild for grpc-1.46.1
+- rebuild with grpc-1.46.1
 
 * Sun May 8 2022  Kaleb S. KEITHLEY <kkeithle [at] redhat.com> - 8.0.0-1
 - Arrow 8.0.0 GA
