@@ -38,7 +38,6 @@ URL:		https://arrow.apache.org/
 Requires:	%{name}-doc = %{version}-%{release}
 Source0:	https://dist.apache.org/repos/dist/release/arrow/arrow-%{version}/apache-arrow-%{version}.tar.gz
 Patch0001:	0001-cpp-CMakeLists.txt.patch
-# Patch0002:	0002-cpp_src_arrow_util_utf8.h.patch
 # Apache ORC (liborc) has numerous compile errors and apparently assumes
 # a 64-bit build and runtime environment. This is only consumer of the liborc
 # package, and in turn the only consumer of this and liborc is Ceph, which
