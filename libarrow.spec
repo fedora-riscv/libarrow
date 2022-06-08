@@ -67,9 +67,8 @@ BuildRequires:	libzstd-devel
 BuildRequires:	lz4-devel
 BuildRequires:	openssl-devel
 BuildRequires:	pkgconfig
-BuildRequires:	python38-libs
-BuildRequires:	python38-devel
-BuildRequires:	python38-numpy
+BuildRequires:	python3-devel
+BuildRequires:	python3-numpy
 BuildRequires:	xsimd-devel
 BuildRequires:	abseil-cpp-devel
 BuildRequires:	c-ares-devel
@@ -121,7 +120,7 @@ Documentation files for Apache Arrow C++.
 
 %package devel
 Summary:	Libraries and header files for Apache Arrow C++
-Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}%{?_isa} = %{version}-%{release}
 Requires:	brotli-devel
 Requires:	bzip2-devel
 Requires:	libzstd-devel
@@ -183,7 +182,7 @@ Libraries and header files for Apache Arrow C++.
 
 %package dataset-libs
 Summary:	C++ library to read and write semantic datasets
-Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}%{?_isa} = %{version}-%{release}
 Requires:	%{name}-doc = %{version}-%{release}
 
 %description dataset-libs
@@ -196,7 +195,7 @@ This package contains the libraries for Apache Arrow dataset.
 
 %package dataset-devel
 Summary:	Libraries and header files for Apache Arrow dataset
-Requires:	%{name}-dataset-libs = %{version}-%{release}
+Requires:	%{name}-dataset-libs%{?_isa} = %{version}-%{release}
 
 %description dataset-devel
 Libraries and header files for Apache Arrow dataset.
@@ -215,7 +214,7 @@ Libraries and header files for Apache Arrow dataset.
 %if %{with use_flight}
 %package flight-libs
 Summary:	C++ library for fast data transport
-Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}%{?_isa} = %{version}-%{release}
 Requires:	%{name}-doc = %{version}-%{release}
 Requires:	openssl
 
@@ -231,7 +230,7 @@ This package contains the libraries for Apache Arrow Flight.
 
 %package flight-devel
 Summary:	Libraries and header files for Apache Arrow Flight
-Requires:	%{name}-flight-libs = %{version}-%{release}
+Requires:	%{name}-flight-libs%{?_isa} = %{version}-%{release}
 
 %description flight-devel
 Libraries and header files for Apache Arrow Flight.
@@ -255,7 +254,7 @@ Libraries and header files for Apache Arrow Flight.
 %if %{with use_gandiva}
 %package -n gandiva-libs
 Summary:	C++ library for compiling and evaluating expressions
-Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}%{?_isa} = %{version}-%{release}
 Requires:	%{name}-doc = %{version}-%{release}
 Requires:	ncurses-libs
 
@@ -269,7 +268,7 @@ This package contains the libraries for Gandiva.
 
 %package -n gandiva-devel
 Summary:	Libraries and header files for Gandiva
-Requires:	gandiva-libs = %{version}-%{release}
+Requires:	gandiva-libs%{?_isa} = %{version}-%{release}
 Requires:	llvm-devel
 
 %description -n gandiva-devel
@@ -289,9 +288,9 @@ Libraries and header files for Gandiva.
 
 %package python-libs
 Summary:	Python integration library for Apache Arrow
-Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}%{?_isa} = %{version}-%{release}
 Requires:	%{name}-doc = %{version}-%{release}
-Requires:	python38-numpy
+Requires:	python3-numpy
 
 %description python-libs
 This package contains the Python integration library for Apache Arrow.
@@ -304,10 +303,9 @@ This package contains the Python integration library for Apache Arrow.
 %package python-devel
 Summary:	Libraries and header files for Python integration library
 Requires:	%{name}-devel = %{version}-%{release}
-Requires:	%{name} = %{version}-%{release}
-Requires:	%{name}-python-libs = %{version}-%{release}
-Requires:	python38-libs
-Requires:	python38-devel
+Requires:	%{name}%{?_isa} = %{version}-%{release}
+Requires:	%{name}-python-libs%{?_isa} = %{version}-%{release}
+Requires:	python3-devel
 
 %description python-devel
 Libraries and header files for Python integration library for Apache Arrow.
@@ -327,8 +325,8 @@ Libraries and header files for Python integration library for Apache Arrow.
 %if %{with use_flight}
 %package python-flight-libs
 Summary:	Python integration library for Apache Arrow Flight
-Requires:	%{name}-flight-libs = %{version}-%{release}
-Requires:	%{name}-python-libs = %{version}-%{release}
+Requires:	%{name}-flight-libs%{?_isa} = %{version}-%{release}
+Requires:	%{name}-python-libs%{?_isa} = %{version}-%{release}
 Requires:	%{name}-doc = %{version}-%{release}
 
 %description python-flight-libs
@@ -341,9 +339,9 @@ This package contains the Python integration library for Apache Arrow Flight.
 
 %package python-flight-devel
 Summary:	Libraries and header files for Python integration
-Requires:	%{name}-flight-devel = %{version}-%{release}
-Requires:	%{name}-python-devel = %{version}-%{release}
-Requires:	%{name}-python-flight-libs = %{version}-%{release}
+Requires:	%{name}-flight-devel%{?_isa} = %{version}-%{release}
+Requires:	%{name}-python-devel%{?_isa} = %{version}-%{release}
+Requires:	%{name}-python-flight-libs%{?_isa} = %{version}-%{release}
 
 %description python-flight-devel
 Libraries and header files for Python integration library for
@@ -363,7 +361,7 @@ Apache Arrow Flight.
 
 %package -n plasma-libs
 Summary:	Runtime libraries for Plasma in-memory object store
-Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}%{?_isa} = %{version}-%{release}
 Requires:	%{name}-doc = %{version}-%{release}
 
 %description -n plasma-libs
@@ -376,7 +374,7 @@ This package contains the libraries for Plasma in-memory object store.
 
 %package -n plasma-store-server
 Summary:	Server for Plasma in-memory object store
-Requires:	plasma-libs = %{version}-%{release}
+Requires:	plasma-libs%{?_isa} = %{version}-%{release}
 Requires:	%{name}-doc = %{version}-%{release}
 
 %description -n plasma-store-server
@@ -389,7 +387,7 @@ This package contains the server for Plasma in-memory object store.
 
 %package -n plasma-libs-devel
 Summary:	Libraries and header files for Plasma in-memory object store
-Requires:	plasma-libs = %{version}-%{release}
+Requires:	plasma-libs%{?_isa} = %{version}-%{release}
 # plasma-devel a.k.a. kdelibs-devel provides
 # conflicts with all versions of plasma-devel %%{_libdir}/libplasma.so
 BuildConflicts: plasma-devel 
@@ -412,7 +410,7 @@ Libraries and header files for Plasma in-memory object store.
 %package -n parquet-libs
 Summary:	Runtime libraries for Apache Parquet C++
 Requires:	boost-program-options
-Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}%{?_isa} = %{version}-%{release}
 Requires:	%{name}-doc = %{version}-%{release}
 Requires:	openssl
 
@@ -426,7 +424,7 @@ This package contains the libraries for Apache Parquet C++.
 
 %package -n parquet-libs-devel
 Summary:	Libraries and header files for Apache Parquet C++
-Requires:	parquet-libs = %{version}-%{release}
+Requires:	parquet-libs%{?_isa} = %{version}-%{release}
 Requires:	zlib-devel
 
 %description -n parquet-libs-devel
@@ -445,7 +443,7 @@ Libraries and header files for Apache Parquet C++.
 
 %package glib-libs
 Summary:	Runtime libraries for Apache Arrow GLib
-Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}%{?_isa} = %{version}-%{release}
 Requires:	%{name}-doc = %{version}-%{release}
 
 %description glib-libs
@@ -460,8 +458,8 @@ This package contains the libraries for Apache Arrow GLib.
 
 %package glib-devel
 Summary:	Libraries and header files for Apache Arrow GLib
-Requires:	%{name}-devel = %{version}-%{release}
-Requires:	%{name}-glib-libs = %{version}-%{release}
+Requires:	%{name}-devel%{?_isa} = %{version}-%{release}
+Requires:	%{name}-glib-libs%{?_isa} = %{version}-%{release}
 Requires:	glib2-devel
 Requires:	gobject-introspection-devel
 
@@ -502,8 +500,8 @@ Documentation for Apache Arrow GLib.
 
 %package dataset-glib-libs
 Summary:	Runtime libraries for Apache Arrow dataset GLib
-Requires:	%{name}-dataset-libs = %{version}-%{release}
-Requires:	%{name}-glib-libs = %{version}-%{release}
+Requires:	%{name}-dataset-libs%{?_isa} = %{version}-%{release}
+Requires:	%{name}-glib-libs%{?_isa} = %{version}-%{release}
 Requires:	%{name}-doc = %{version}-%{release}
 
 %description dataset-glib-libs
@@ -517,9 +515,9 @@ This package contains the libraries for Apache Arrow dataset GLib.
 
 %package dataset-glib-devel
 Summary:	Libraries and header files for Apache Arrow dataset GLib
-Requires:	%{name}-dataset-devel = %{version}-%{release}
-Requires:	%{name}-glib-devel = %{version}-%{release}
-Requires:	%{name}-dataset-glib-libs = %{version}-%{release}
+Requires:	%{name}-dataset-devel%{?_isa} = %{version}-%{release}
+Requires:	%{name}-glib-devel%{?_isa} = %{version}-%{release}
+Requires:	%{name}-dataset-glib-libs%{?_isa} = %{version}-%{release}
 
 %description dataset-glib-devel
 Libraries and header files for Apache Arrow dataset GLib.
@@ -548,8 +546,8 @@ Documentation for Apache Arrow dataset GLib.
 %if %{with use_gandiva}
 %package -n gandiva-glib-libs
 Summary:	Runtime libraries for Gandiva GLib
-Requires:	gandiva-libs = %{version}-%{release}
-Requires:	%{name}-glib-libs = %{version}-%{release}
+Requires:	gandiva-libs%{?_isa} = %{version}-%{release}
+Requires:	%{name}-glib-libs%{?_isa} = %{version}-%{release}
 Requires:	%{name}-doc = %{version}-%{release}
 
 %description -n gandiva-glib-libs
@@ -563,8 +561,8 @@ This package contains the libraries for Gandiva GLib.
 
 %package -n gandiva-glib-devel
 Summary:	Libraries and header files for Gandiva GLib
-Requires:	gandiva-devel = %{version}-%{release}
-Requires:	%{name}-glib-devel = %{version}-%{release}
+Requires:	gandiva-devel%{?_isa} = %{version}-%{release}
+Requires:	%{name}-glib-devel%{?_isa} = %{version}-%{release}
 
 %description -n gandiva-glib-devel
 Libraries and header files for Gandiva GLib.
@@ -594,8 +592,8 @@ Documentation for Gandiva GLib.
 
 %package -n plasma-glib-libs
 Summary:	Runtime libraries for Plasma GLib
-Requires:	plasma-libs = %{version}-%{release}
-Requires:	%{name}-glib-libs = %{version}-%{release}
+Requires:	plasma-libs%{?_isa} = %{version}-%{release}
+Requires:	%{name}-glib-libs%{?_isa} = %{version}-%{release}
 Requires:	%{name}-doc = %{version}-%{release}
 
 %description -n plasma-glib-libs
@@ -609,9 +607,9 @@ This package contains the libraries for Plasma GLib.
 
 %package -n plasma-glib-devel
 Summary:	Libraries and header files for Plasma GLib
-Requires:	plasma-devel = %{version}-%{release}
-Requires:	plasma-glib-libs = %{version}-%{release}
-Requires:	%{name}-glib-devel = %{version}-%{release}
+Requires:	plasma-devel%{?_isa} = %{version}-%{release}
+Requires:	plasma-glib-libs%{?_isa} = %{version}-%{release}
+Requires:	%{name}-glib-devel%{?_isa} = %{version}-%{release}
 
 %description -n plasma-glib-devel
 Libraries and header files for Plasma GLib.
@@ -640,8 +638,8 @@ Documentation for Plasma GLib.
 
 %package -n parquet-glib-libs
 Summary:	Runtime libraries for Apache Parquet GLib
-Requires:	parquet-libs = %{version}-%{release}
-Requires:	%{name}-glib-libs = %{version}-%{release}
+Requires:	parquet-libs%{?_isa} = %{version}-%{release}
+Requires:	%{name}-glib-libs%{?_isa} = %{version}-%{release}
 Requires:	%{name}-doc = %{version}-%{release}
 
 %description -n parquet-glib-libs
@@ -655,9 +653,9 @@ This package contains the libraries for Apache Parquet GLib.
 
 %package -n parquet-glib-devel
 Summary:	Libraries and header files for Apache Parquet GLib
-Requires:	parquet-devel = %{version}-%{release}
-Requires:	parquet-glib-libs = %{version}-%{release}
-Requires:	%{name}-glib-devel = %{version}-%{release}
+Requires:	parquet-devel%{?_isa} = %{version}-%{release}
+Requires:	parquet-glib-libs%{?_isa} = %{version}-%{release}
+Requires:	%{name}-glib-devel%{?_isa} = %{version}-%{release}
 
 %description -n parquet-glib-devel
 Libraries and header files for Apache Parquet GLib.
@@ -688,7 +686,7 @@ Documentation for Apache Parquet GLib.
 
 %build
 pushd cpp
-%cmake . \
+%cmake \
 %if %{with use_flight}
   -DARROW_FLIGHT:BOOL=ON \
   -DGRPC_SOURCE="SYSTEM" \
@@ -735,10 +733,6 @@ pushd cpp
 export VERBOSE=1
 export GCC_COLORS=
 %cmake_build
-# put everything where meson can find it
-mkdir -p %{_target_platform}/relwithdebinfo
-ln -s ../src %{_target_platform}
-cp -p build/relwithdebinfo/lib*.so* %{_target_platform}/relwithdebinfo/
 popd
 
 pushd c_glib
