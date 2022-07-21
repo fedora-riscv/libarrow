@@ -31,7 +31,7 @@
 
 Name:		libarrow
 Version:	8.0.0
-Release:	3%{?dist}
+Release:	4%{?dist}
 Summary:	A toolbox for accelerated data interchange and in-memory processing
 License:	ASL 2.0
 URL:		https://arrow.apache.org/
@@ -766,6 +766,9 @@ popd
 #--------------------------------------------------------------------
 
 %changelog
+* Thu Jul 21 2022 Fedora Release Engineering <releng@fedoraproject.org> - 8.0.0-4
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_37_Mass_Rebuild
+
 * Wed May 18 2022  Kaleb S. KEITHLEY <kkeithle [at] redhat.com> - 8.0.0-3
 - rebuild with xsimd-8.1.0
 
