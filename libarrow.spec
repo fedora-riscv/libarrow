@@ -30,7 +30,7 @@
 %bcond_without have_utf8proc
 
 Name:		libarrow
-Version:	8.0.0
+Version:	8.0.1
 Release:	1%{?dist}
 Summary:	A toolbox for accelerated data interchange and in-memory processing
 License:	ASL 2.0
@@ -762,6 +762,9 @@ popd
 #--------------------------------------------------------------------
 
 %changelog
+* Thu Jul 21 2022  Kaleb S. KEITHLEY <kkeithle [at] redhat.com> - 8.0.1-1
+- Apache Arrow 8.0.1 GA
+
 * Sun May 8 2022  Kaleb S. KEITHLEY <kkeithle [at] redhat.com> - 8.0.0-1
 - Apache Arrow 8.0.0 GA
 
