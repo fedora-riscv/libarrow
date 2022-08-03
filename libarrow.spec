@@ -30,14 +30,12 @@
 %bcond_without have_utf8proc
 
 Name:		libarrow
-Version:	8.0.1
+Version:	9.0.0
 Release:	1%{?dist}
 Summary:	A toolbox for accelerated data interchange and in-memory processing
 License:	ASL 2.0
 URL:		https://arrow.apache.org/
 Source0:	https://dist.apache.org/repos/dist/release/arrow/arrow-%{version}/apache-arrow-%{version}.tar.gz
-Patch0001:	0001-cpp-CMakeLists.txt.patch
-Patch0002:	0002-cpp_src_arrow_util_utf8.h.patch
 # Apache ORC (liborc) has numerous compile errors and apparently assumes
 # a 64-bit build and runtime environment. This is only consumer of the liborc
 # package, and in turn the only consumer of this and liborc is Ceph, which
@@ -151,18 +149,19 @@ Libraries and header files for Apache Arrow C++.
 %endif
 %exclude %{_includedir}/arrow/python/
 %exclude %{_libdir}/cmake/arrow/FindBrotli.cmake
-%exclude %{_libdir}/cmake/arrow/FindLz4.cmake
+%exclude %{_libdir}/cmake/arrow/Findlz4Alt.cmake
 %if %{with use_flight}
 %exclude %{_libdir}/cmake/arrow/FindORC.cmake
 %endif
-%exclude %{_libdir}/cmake/arrow/FindSnappy.cmake
+%exclude %{_libdir}/cmake/arrow/FindSnappyAlt.cmake
 %exclude %{_libdir}/cmake/arrow/Findre2Alt.cmake
 %if %{with use_flight}
 %exclude %{_libdir}/cmake/arrow/FindgRPCAlt.cmake
 %exclude %{_libdir}/cmake/arrow/Findutf8proc.cmake
 %endif
 %exclude %{_libdir}/cmake/arrow/Findzstd.cmake
-%dir %{_libdir}/cmake/arrow
+%exclude %{_libdir}/cmake/arrow/FindThrift.cmake
+%dir %{_libdir}/cmake/arrow/
      %{_libdir}/cmake/arrow/ArrowConfig*.cmake
      %{_libdir}/cmake/arrow/ArrowOptions.cmake
      %{_libdir}/cmake/arrow/ArrowTargets*.cmake
@@ -177,6 +176,8 @@ Libraries and header files for Apache Arrow C++.
 %{_libdir}/pkgconfig/arrow-orc.pc
 %endif
 %{_libdir}/pkgconfig/arrow.pc
+%{_datadir}/arrow/gdb/gdb_arrow.py
+%{_datadir}/gdb/auto-load/usr/lib64/libarrow.so.*-gdb.py
 
 #--------------------------------------------------------------------
 
@@ -756,6 +757,9 @@ popd
 #--------------------------------------------------------------------
 
 %changelog
+* Wed Aug 3 2022  Kaleb S. KEITHLEY <kkeithle [at] redhat.com> - 9.0.0-1
+- Arrow 9.0.0 GA
+
 * Thu Jul 21 2022  Kaleb S. KEITHLEY <kkeithle [at] redhat.com> - 8.0.1-1
 - Apache Arrow 8.0.1 GA
 
@@ -770,4 +774,3 @@ popd
 
 * Thu Jan 13 2022  Kaleb S. KEITHLEY <kkeithle [at] redhat.com> - 7.0.0-1
 - latest upstream release.
-
