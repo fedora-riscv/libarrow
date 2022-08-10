@@ -31,7 +31,7 @@
 
 Name:		libarrow
 Version:	9.0.0
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	A toolbox for accelerated data interchange and in-memory processing
 License:	ASL 2.0
 URL:		https://arrow.apache.org/
@@ -89,6 +89,13 @@ BuildRequires:	ncurses-devel
 %endif
 BuildRequires:	gobject-introspection-devel
 BuildRequires:	gtk-doc
+
+# Additional pyarrow build requirements
+BuildRequires:	python3-pip
+BuildRequires:	python3-setuptools
+BuildRequires:	python3dist(cffi)
+BuildRequires:	python3dist(cython)
+BuildRequires:	python3dist(wheel)
 
 %description
 Apache Arrow defines a language-independent columnar memory
@@ -680,6 +687,32 @@ Documentation for Apache Parquet GLib.
 %dir %{_datadir}/gtk-doc/html/parquet-glib
      %{_datadir}/gtk-doc/html/parquet-glib/*
 
+
+%package -n python3-pyarrow
+Summary:	Python library for Apache Arrow
+
+%description -n python3-pyarrow
+Python library for Apache Arrow
+
+%files -n python3-pyarrow
+%{_bindir}/plasma_store
+%dir %{python3_sitearch}/pyarrow
+     %{python3_sitearch}/pyarrow/*.so
+%exclude %{python3_sitearch}/pyarrow/lib_api.h
+%exclude %{python3_sitearch}/pyarrow/include
+
+#--------------------------------------------------------------------
+
+%package -n python3-pyarrow-devel
+Summary:	Development files for python3-pyarrow
+
+%description -n python3-pyarrow-devel
+Development files for python3-pyarrow
+
+%files -n python3-pyarrow-devel -f %{_pyproject_ghost_distinfo}
+%exclude %{python3_sitearch}/pyarrow/*.so
+%{python3_sitearch}/pyarrow/*
+
 #--------------------------------------------------------------------
 
 %prep
@@ -742,10 +775,36 @@ pushd c_glib
   -Darrow_cpp_build_type=relwithdebinfo \
   -Dgtk_doc=true
 %meson_build
+popd
+
+# hack alert. install libarrow somewhere (temporary) so that python
+# (i.e. pyarrow) can build against it. If someone knows how to invoke
+# cmake or # pyproject_wheel using the bits in ../cpp instead, that
+# would be preferable to this.
+pushd cpp
+DESTDIR="/tmp" %__cmake --install "%{__cmake_builddir}"
+popd
+pushd python
+export \
+  ARROW_HOME=/tmp/usr \
+  PYARROW_BUNDLE_ARROW_CPP_HEADERS=1 \
+  PYARROW_BUNDLE_PLASMA_EXECUTABLE=0 \
+  PYARROW_WITH_DATASET=1 \
+  PYARROW_WITH_FLIGHT=0 \
+  PYARROW_WITH_PARQUET=1 \
+  PYARROW_PARALLEL=%{_smp_build_ncpus} \
+  PYARROW_INSTALL_TESTS=0
+%pyproject_wheel
+popd
+rm -rf /tmp/usr
 
 #--------------------------------------------------------------------
 
 %install
+pushd python
+%pyproject_install
+popd
+
 pushd c_glib
 %meson_install
 popd
@@ -757,6 +816,9 @@ popd
 #--------------------------------------------------------------------
 
 %changelog
+* Wed Aug 10 2022  Kaleb S. KEITHLEY <kkeithle [at] redhat.com> - 9.0.0-2
+- Arrow 9.0.0, enable python, i.e. python3-pyarrow, subpackage
+
 * Wed Aug 3 2022  Kaleb S. KEITHLEY <kkeithle [at] redhat.com> - 9.0.0-1
 - Arrow 9.0.0 GA
 
