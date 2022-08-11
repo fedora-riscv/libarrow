@@ -806,6 +806,9 @@ export \
   PYARROW_WITH_DATASET=1 \
   PYARROW_WITH_FLIGHT=1 \
   PYARROW_WITH_PARQUET=1 \
+  %{?with_use_plasma:PYARROW_WITH_PLASMA=1} \
+  PYARROW_WITH_PARQUET_ENCRYPTION=1 \
+  %{?with_use_gandiva:PYARROW_WITH_GANDIVA=1} \
   PYARROW_PARALLEL=%{_smp_build_ncpus} \
   PYARROW_INSTALL_TESTS=0
 %pyproject_wheel
@@ -842,8 +845,7 @@ export LD_LIBRARY_PATH='%{buildroot}%{_libdir}'
 %{pyproject_check_import \
     -e 'pyarrow.conftest' -e '*.test*' \
     -e 'pyarrow.orc' -e 'pyarrow._orc' \
-    -e 'pyarrow.parquet.encryption' -e 'pyarrow._parquet_encryption' \
-    -e 'pyarrow.plasma' -e 'pyarrow._plasma' \
+    %{?!with_use_plasma:-e 'pyarrow.plasma' -e 'pyarrow._plasma'} \
     -e 'pyarrow.substrait' -e 'pyarrow._substrait' \
     -e 'pyarrow.cuda'}
 
@@ -856,6 +858,7 @@ export LD_LIBRARY_PATH='%{buildroot}%{_libdir}'
 - Add import-only “smoke tests” for pyarrow
 - Stop requiring SSE4.2 on x86-family platforms
 - Correct ARROW_WITH_XSIMD; should be ARROW_USE_XSIMD
+- Enable more optional functionality in pyarrow
 
 * Wed Aug 10 2022  Kaleb S. KEITHLEY <kkeithle [at] redhat.com> - 9.0.0-2
 - Arrow 9.0.0, enable python, i.e. python3-pyarrow, subpackage
