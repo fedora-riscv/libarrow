@@ -753,6 +753,7 @@ pushd cpp
 %endif
   -DARROW_PYTHON:BOOL=ON \
   -DARROW_JEMALLOC:BOOL=OFF \
+  -DARROW_SIMD_LEVEL:STRING='NONE' \
   -DGRPC_SOURCE="SYSTEM" \
   -Dxsimd_SOURCE="SYSTEM" \
 %if %{with use_s3}
@@ -853,6 +854,7 @@ export LD_LIBRARY_PATH='%{buildroot}%{_libdir}'
 - Use %%pyproject_save_files to fix pyarrow metadata
 - Use generated BR’s for pyarrow
 - Add import-only “smoke tests” for pyarrow
+- Stop requiring SSE4.2 on x86-family platforms
 
 * Wed Aug 10 2022  Kaleb S. KEITHLEY <kkeithle [at] redhat.com> - 9.0.0-2
 - Arrow 9.0.0, enable python, i.e. python3-pyarrow, subpackage
