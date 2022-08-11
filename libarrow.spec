@@ -816,6 +816,7 @@ rm -rf /tmp/usr
 %install
 
 pushd python
+export PYARROW_INSTALL_TESTS=0
 %pyproject_install
 %pyproject_save_files pyarrow
 popd
@@ -828,12 +829,30 @@ pushd cpp
 %cmake_install
 popd
 
+
+%check
+export LD_LIBRARY_PATH='%{buildroot}%{_libdir}'
+# The tests are still installed despite PYARROW_INSTALL_TESTS=0. Besides,
+# pyarrow.conftest would currently be installed but not importable even if this
+# environment variable were working as intended.
+#
+#  In pyarrow, conftest is installed even when tests are not
+#  https://issues.apache.org/jira/browse/ARROW-17389
+%{pyproject_check_import \
+    -e 'pyarrow.conftest' -e '*.test*' \
+    -e 'pyarrow.orc' -e 'pyarrow._orc' \
+    -e 'pyarrow.parquet.encryption' -e 'pyarrow._parquet_encryption' \
+    -e 'pyarrow.plasma' -e 'pyarrow._plasma' \
+    -e 'pyarrow.substrait' -e 'pyarrow._substrait' \
+    -e 'pyarrow.cuda'}
+
 #--------------------------------------------------------------------
 
 %changelog
 * Thu Aug 11 2022 Benjamin A. Beasley <code@musicinmybrain.net> - 9.0.0-3
 - Use %%pyproject_save_files to fix pyarrow metadata
 - Use generated BR’s for pyarrow
+- Add import-only “smoke tests” for pyarrow
 
 * Wed Aug 10 2022  Kaleb S. KEITHLEY <kkeithle [at] redhat.com> - 9.0.0-2
 - Arrow 9.0.0, enable python, i.e. python3-pyarrow, subpackage
