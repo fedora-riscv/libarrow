@@ -765,7 +765,7 @@ pushd cpp
   -DARROW_WITH_SNAPPY:BOOL=ON \
   -DARROW_WITH_ZLIB:BOOL=ON \
   -DARROW_WITH_ZSTD:BOOL=ON \
-  -DARROW_WITH_XSIMD:BOOL=ON \
+  -DARROW_USE_XSIMD:BOOL=ON \
   -DARROW_BUILD_STATIC:BOOL=OFF \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo \
   -DCMAKE_COLOR_MAKEFILE:BOOL=OFF \
@@ -855,6 +855,7 @@ export LD_LIBRARY_PATH='%{buildroot}%{_libdir}'
 - Use generated BR’s for pyarrow
 - Add import-only “smoke tests” for pyarrow
 - Stop requiring SSE4.2 on x86-family platforms
+- Correct ARROW_WITH_XSIMD; should be ARROW_USE_XSIMD
 
 * Wed Aug 10 2022  Kaleb S. KEITHLEY <kkeithle [at] redhat.com> - 9.0.0-2
 - Arrow 9.0.0, enable python, i.e. python3-pyarrow, subpackage
