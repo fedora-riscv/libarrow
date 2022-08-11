@@ -89,12 +89,8 @@ BuildRequires:	ncurses-devel
 BuildRequires:	gobject-introspection-devel
 BuildRequires:	gtk-doc
 
-# Additional pyarrow build requirements
-BuildRequires:  python3-pip
-BuildRequires:  python3-setuptools
+# Additional pyarrow build requirements; see also %%generate_buildrequires
 BuildRequires:  python3dist(cffi)
-BuildRequires:  python3dist(cython)
-BuildRequires:  python3dist(wheel)
 
 %description
 Apache Arrow defines a language-independent columnar memory
@@ -730,6 +726,13 @@ Development files for python3-pyarrow
 
 %prep
 %autosetup -p1 -n apache-arrow-%{version}
+# We do not need to (nor can we) build for an old version of numpy:
+sed -r -i 's/(oldest-supported-)(numpy)/\2/' python/pyproject.toml
+
+%generate_buildrequires
+pushd python >/dev/null
+%pyproject_buildrequires
+popd >/dev/null
 
 %build
 pushd cpp
@@ -830,6 +833,7 @@ popd
 %changelog
 * Thu Aug 11 2022 Benjamin A. Beasley <code@musicinmybrain.net> - 9.0.0-3
 - Use %%pyproject_save_files to fix pyarrow metadata
+- Use generated BR’s for pyarrow
 
 * Wed Aug 10 2022  Kaleb S. KEITHLEY <kkeithle [at] redhat.com> - 9.0.0-2
 - Arrow 9.0.0, enable python, i.e. python3-pyarrow, subpackage
