@@ -31,7 +31,7 @@
 
 Name:		libarrow
 Version:	9.0.0
-Release:	2%{?dist}
+Release:	3%{?dist}
 Summary:	A toolbox for accelerated data interchange and in-memory processing
 License:	ASL 2.0
 URL:		https://arrow.apache.org/
@@ -707,10 +707,8 @@ Summary: Python library for Apache Arrow
 %description -n python3-pyarrow
 Python library for Apache Arrow
 
-%files -n python3-pyarrow
+%files -n python3-pyarrow -f %{pyproject_files}
 %{_bindir}/plasma_store
-%dir %{python3_sitearch}/pyarrow
-     %{python3_sitearch}/pyarrow/*.so
 %exclude %{python3_sitearch}/pyarrow/lib_api.h
 %exclude %{python3_sitearch}/pyarrow/include
 
@@ -719,12 +717,14 @@ Python library for Apache Arrow
 %package -n python3-pyarrow-devel
 Summary: Development files for python3-pyarrow
 
+Requires:       python3-pyarrow%{?_isa} = %{version}-%{release}
+
 %description -n python3-pyarrow-devel
 Development files for python3-pyarrow
 
-%files -n python3-pyarrow-devel -f %{_pyproject_ghost_distinfo}
-%exclude %{python3_sitearch}/pyarrow/*.so
-%{python3_sitearch}/pyarrow/*
+%files -n python3-pyarrow-devel
+%{python3_sitearch}/pyarrow/lib_api.h
+%{python3_sitearch}/pyarrow/include
 
 #--------------------------------------------------------------------
 
@@ -814,6 +814,7 @@ rm -rf /tmp/usr
 
 pushd python
 %pyproject_install
+%pyproject_save_files pyarrow
 popd
 
 pushd c_glib
@@ -827,6 +828,9 @@ popd
 #--------------------------------------------------------------------
 
 %changelog
+* Thu Aug 11 2022 Benjamin A. Beasley <code@musicinmybrain.net> - 9.0.0-3
+- Use %%pyproject_save_files to fix pyarrow metadata
+
 * Wed Aug 10 2022  Kaleb S. KEITHLEY <kkeithle [at] redhat.com> - 9.0.0-2
 - Arrow 9.0.0, enable python, i.e. python3-pyarrow, subpackage
 
