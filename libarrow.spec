@@ -837,6 +837,7 @@ export LD_LIBRARY_PATH='%{buildroot}%{_libdir}'
 %{pyproject_check_import \
     -e 'pyarrow.conftest' \
     -e 'pyarrow.orc' -e 'pyarrow._orc' \
+    %{?!with_use_flight:-e 'pyarrow.flight' -e 'pyarrow._flight'} \
     %{?!with_use_plasma:-e 'pyarrow.plasma' -e 'pyarrow._plasma'} \
     -e 'pyarrow.substrait' -e 'pyarrow._substrait' \
     -e 'pyarrow.cuda'}
