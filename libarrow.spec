@@ -31,11 +31,14 @@
 
 Name:		libarrow
 Version:	9.0.0
-Release:	2%{?dist}
+Release:	3%{?dist}
 Summary:	A toolbox for accelerated data interchange and in-memory processing
 License:	ASL 2.0
 URL:		https://arrow.apache.org/
 Source0:	https://dist.apache.org/repos/dist/release/arrow/arrow-%{version}/apache-arrow-%{version}.tar.gz
+# ARROW-17389: [Python] Exclude conftest and tests when PYARROW_INSTALL_TESTS=0
+# Fixes https://issues.apache.org/jira/browse/ARROW-17389
+Patch:          https://github.com/apache/arrow/pull/13904.patch
 # Apache ORC (liborc) has numerous compile errors and apparently assumes
 # a 64-bit build and runtime environment. This is only consumer of the liborc
 # package, and in turn the only consumer of this and liborc is Ceph, which
@@ -90,12 +93,8 @@ BuildRequires:	ncurses-devel
 BuildRequires:	gobject-introspection-devel
 BuildRequires:	gtk-doc
 
-# Additional pyarrow build requirements
-BuildRequires:	python3-pip
-BuildRequires:	python3-setuptools
-BuildRequires:	python3dist(cffi)
-BuildRequires:	python3dist(cython)
-BuildRequires:	python3dist(wheel)
+# Additional pyarrow build requirements; see also %%generate_buildrequires
+BuildRequires:  python3dist(cffi)
 
 %description
 Apache Arrow defines a language-independent columnar memory
@@ -694,10 +693,8 @@ Summary:	Python library for Apache Arrow
 %description -n python3-pyarrow
 Python library for Apache Arrow
 
-%files -n python3-pyarrow
+%files -n python3-pyarrow -f %{pyproject_files}
 %{_bindir}/plasma_store
-%dir %{python3_sitearch}/pyarrow
-     %{python3_sitearch}/pyarrow/*.so
 %exclude %{python3_sitearch}/pyarrow/lib_api.h
 %exclude %{python3_sitearch}/pyarrow/include
 
@@ -706,17 +703,26 @@ Python library for Apache Arrow
 %package -n python3-pyarrow-devel
 Summary:	Development files for python3-pyarrow
 
+Requires:       python3-pyarrow%{?_isa} = %{version}-%{release}
+
 %description -n python3-pyarrow-devel
 Development files for python3-pyarrow
 
-%files -n python3-pyarrow-devel -f %{_pyproject_ghost_distinfo}
-%exclude %{python3_sitearch}/pyarrow/*.so
-%{python3_sitearch}/pyarrow/*
+%files -n python3-pyarrow-devel
+%{python3_sitearch}/pyarrow/lib_api.h
+%{python3_sitearch}/pyarrow/include
 
 #--------------------------------------------------------------------
 
 %prep
 %autosetup -p1 -n apache-arrow-%{version}
+# We do not need to (nor can we) build for an old version of numpy:
+sed -r -i 's/(oldest-supported-)(numpy)/\2/' python/pyproject.toml
+
+%generate_buildrequires
+pushd python >/dev/null
+%pyproject_buildrequires
+popd >/dev/null
 
 %build
 pushd cpp
@@ -741,6 +747,7 @@ pushd cpp
 %endif
   -DARROW_PYTHON:BOOL=ON \
   -DARROW_JEMALLOC:BOOL=OFF \
+  -DARROW_SIMD_LEVEL:STRING='NONE' \
   -Dxsimd_SOURCE="SYSTEM" \
 %if %{with use_s3}
   -DARROW_S3:BOOL=ON \
@@ -751,7 +758,7 @@ pushd cpp
   -DARROW_WITH_SNAPPY:BOOL=ON \
   -DARROW_WITH_ZLIB:BOOL=ON \
   -DARROW_WITH_ZSTD:BOOL=ON \
-  -DARROW_WITH_XSIMD:BOOL=ON \
+  -DARROW_USE_XSIMD:BOOL=ON \
   -DARROW_BUILD_STATIC:BOOL=OFF \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo \
   -DCMAKE_COLOR_MAKEFILE:BOOL=OFF \
@@ -792,6 +799,9 @@ export \
   PYARROW_WITH_DATASET=1 \
   PYARROW_WITH_FLIGHT=0 \
   PYARROW_WITH_PARQUET=1 \
+  %{?with_use_plasma:PYARROW_WITH_PLASMA=1} \
+  PYARROW_WITH_PARQUET_ENCRYPTION=1 \
+  %{?with_use_gandiva:PYARROW_WITH_GANDIVA=1} \
   PYARROW_PARALLEL=%{_smp_build_ncpus} \
   PYARROW_INSTALL_TESTS=0
 %pyproject_wheel
@@ -802,7 +812,9 @@ rm -rf /tmp/usr
 
 %install
 pushd python
+export PYARROW_INSTALL_TESTS=0
 %pyproject_install
+%pyproject_save_files pyarrow
 popd
 
 pushd c_glib
@@ -813,9 +825,34 @@ pushd cpp
 %cmake_install
 popd
 
+
+%check
+export LD_LIBRARY_PATH='%{buildroot}%{_libdir}'
+# While https://github.com/apache/arrow/pull/13904 partially fixes
+# https://issues.apache.org/jira/browse/ARROW-17389, conftest.py is still
+# installed. We must skip testing it because it would import pytest.
+#
+# Additionally, skip subpackages corresponding to missing optional
+# functionality.
+%{pyproject_check_import \
+    -e 'pyarrow.conftest' \
+    -e 'pyarrow.orc' -e 'pyarrow._orc' \
+    %{?!with_use_plasma:-e 'pyarrow.plasma' -e 'pyarrow._plasma'} \
+    -e 'pyarrow.substrait' -e 'pyarrow._substrait' \
+    -e 'pyarrow.cuda'}
+
 #--------------------------------------------------------------------
 
 %changelog
+* Wed Aug 17 2022 Benjamin A. Beasley <code@musicinmybrain.net> - 9.0.0-3
+- Use %%pyproject_save_files to fix pyarrow metadata
+- Use generated BR’s for pyarrow
+- Add import-only “smoke tests” for pyarrow
+- Stop requiring SSE4.2 on x86-family platforms
+- Correct ARROW_WITH_XSIMD; should be ARROW_USE_XSIMD
+- Enable more optional functionality in pyarrow
+- Fix pyarrow tests installed despite PYARROW_INSTALL_TESTS=0
+
 * Wed Aug 10 2022  Kaleb S. KEITHLEY <kkeithle [at] redhat.com> - 9.0.0-2
 - Arrow 9.0.0, enable python, i.e. python3-pyarrow, subpackage
 
