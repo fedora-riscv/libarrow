@@ -31,7 +31,7 @@
 
 Name:		libarrow
 Version:	8.0.1
-Release:	2%{?dist}
+Release:	3%{?dist}
 Summary:	A toolbox for accelerated data interchange and in-memory processing
 License:	ASL 2.0
 URL:		https://arrow.apache.org/
@@ -92,11 +92,8 @@ BuildRequires:	gobject-introspection-devel
 BuildRequires:	gtk-doc
 
 # Additional pyarrow build requirements
-BuildRequires:	python3-pip
-BuildRequires:	python3-setuptools
+# Additional pyarrow build requirements; see also %%generate_buildrequires
 BuildRequires:	python3dist(cffi)
-BuildRequires:	python3dist(cython)
-BuildRequires:	python3dist(wheel)
 
 %description
 Apache Arrow defines a language-independent columnar memory
@@ -706,7 +703,7 @@ Summary:	Python library for Apache Arrow
 %description -n python3-pyarrow
 Python library for Apache Arrow
 
-%files -n python3-pyarrow
+%files -n python3-pyarrow -f %{pyproject_files}
 %{_bindir}/plasma_store
 %dir %{python3_sitearch}/pyarrow
      %{python3_sitearch}/pyarrow/*.so
@@ -718,17 +715,26 @@ Python library for Apache Arrow
 %package -n python3-pyarrow-devel
 Summary:	Development files for python3-pyarrow
 
+Requires:	python3-pyarrow%{?_isa} = %{version}-%{release}
+
 %description -n python3-pyarrow-devel
 Development files for python3-pyarrow
 
-%files -n python3-pyarrow-devel -f %{_pyproject_ghost_distinfo}
-%exclude %{python3_sitearch}/pyarrow/*.so
-%{python3_sitearch}/pyarrow/*
+%files -n python3-pyarrow-devel
+%{python3_sitearch}/pyarrow/lib_api.h
+%{python3_sitearch}/pyarrow/include
 
 #--------------------------------------------------------------------
 
 %prep
 %autosetup -p1 -n apache-arrow-%{version}
+# We do not need to (nor can we) build for an old version of numpy:
+sed -r -i 's/(oldest-supported-)(numpy)/\2/' python/pyproject.toml
+
+%generate_buildrequires
+pushd python >/dev/null
+%pyproject_buildrequires
+popd >/dev/null
 
 %build
 pushd cpp
@@ -750,6 +756,7 @@ pushd cpp
   -DARROW_PYTHON:BOOL=ON \
   -DARROW_JEMALLOC:BOOL=OFF \
   -DGRPC_SOURCE="SYSTEM" \
+  -DARROW_SIMD_LEVEL:STRING='NONE' \
   -Dxsimd_SOURCE="SYSTEM" \
 %if %{with use_s3}
   -DARROW_S3:BOOL=ON \
@@ -760,7 +767,7 @@ pushd cpp
   -DARROW_WITH_SNAPPY:BOOL=ON \
   -DARROW_WITH_ZLIB:BOOL=ON \
   -DARROW_WITH_ZSTD:BOOL=ON \
-  -DARROW_WITH_XSIMD:BOOL=ON \
+  -DARROW_USE_XSIMD:BOOL=ON \
   -DARROW_BUILD_STATIC:BOOL=OFF \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo \
   -DCMAKE_COLOR_MAKEFILE:BOOL=OFF \
@@ -801,6 +808,9 @@ export \
   PYARROW_WITH_DATASET=1 \
   PYARROW_WITH_FLIGHT=1 \
   PYARROW_WITH_PARQUET=1 \
+  %{?with_use_plasma:PYARROW_WITH_PLASMA=1} \
+  PYARROW_WITH_PARQUET_ENCRYPTION=1 \
+  %{?with_use_gandiva:PYARROW_WITH_GANDIVA=1} \
   PYARROW_PARALLEL=%{_smp_build_ncpus} \
   PYARROW_INSTALL_TESTS=0
 %pyproject_wheel
@@ -811,7 +821,9 @@ rm -rf /tmp/usr
 
 %install
 pushd python
+export PYARROW_INSTALL_TESTS=0
 %pyproject_install
+%pyproject_save_files pyarrow
 popd
 
 pushd c_glib
@@ -822,9 +834,89 @@ pushd cpp
 %cmake_install
 popd
 
+%check
+export LD_LIBRARY_PATH='%{buildroot}%{_libdir}'
+# While https://github.com/apache/arrow/pull/13904 partially fixes
+# https://issues.apache.org/jira/browse/ARROW-17389, conftest.py is still
+# installed. We must skip testing it because it would import pytest.
+#
+# Additionally, skip subpackages corresponding to missing optional
+# functionality.
+%{pyproject_check_import \
+    -e 'pyarrow.conftest' \
+    -e 'pyarrow.orc' -e 'pyarrow._orc' \
+    %{?!with_use_flight:-e 'pyarrow.flight' -e 'pyarrow._flight'} \
+    %{?!with_use_plasma:-e 'pyarrow.plasma' -e 'pyarrow._plasma'} \
+    -e 'pyarrow.substrait' -e 'pyarrow._substrait' \
+    -e 'pandas' -e 'pyarrow.pandas_compat' -e 'pyarrow.tests.pandas_examples' \
+    -e 'pyarrow.tests.arrow_7980' \
+    -e 'pyarrow.tests.conftest' \
+    -e 'pyarrow.tests.deserialize_buffer' \
+    -e 'pyarrow.tests.parquet' \
+    -e 'pyarrow.tests.parquet.common' \
+    -e 'pyarrow.tests.parquet.conftest' \
+    -e 'pyarrow.tests.parquet.encryption' \
+    -e 'pyarrow.tests.parquet.test_basic' \
+    -e 'pyarrow.tests.parquet.test_compliant_nested_type' \
+    -e 'pyarrow.tests.parquet.test_data_types' \
+    -e 'pyarrow.tests.parquet.test_dataset' \
+    -e 'pyarrow.tests.parquet.test_datetime' \
+    -e 'pyarrow.tests.parquet.test_encryption' \
+    -e 'pyarrow.tests.parquet.test_metadata' \
+    -e 'pyarrow.tests.parquet.test_pandas' \
+    -e 'pyarrow.tests.parquet.test_parquet_file' \
+    -e 'pyarrow.tests.parquet.test_parquet_writer' \
+    -e 'pyarrow.tests.read_record_batch' \
+    -e 'pyarrow.tests.strategies' \
+    -e 'pyarrow.tests.test_adhoc_memory_leak' \
+    -e 'pyarrow.tests.test_array' \
+    -e 'pyarrow.tests.test_cffi' \
+    -e 'pyarrow.tests.test_compute' \
+    -e 'pyarrow.tests.test_convert_builtin' \
+    -e 'pyarrow.tests.test_csv' \
+    -e 'pyarrow.tests.test_cuda' \
+    -e 'pyarrow.tests.test_cuda_numba_interop' \
+    -e 'pyarrow.tests.test_cython' \
+    -e 'pyarrow.tests.test_dataset' \
+    -e 'pyarrow.tests.test_deprecations' \
+    -e 'pyarrow.tests.test_exec_plan' \
+    -e 'pyarrow.tests.test_extension_type' \
+    -e 'pyarrow.tests.test_feather' \
+    -e 'pyarrow.tests.test_filesystem' \
+    -e 'pyarrow.tests.test_flight' \
+    -e 'pyarrow.tests.test_fs' \
+    -e 'pyarrow.tests.test_gandiva' \
+    -e 'pyarrow.tests.test_gdb' \
+    -e 'pyarrow.tests.test_hdfs' \
+    -e 'pyarrow.tests.test_io' \
+    -e 'pyarrow.tests.test_ipc' \
+    -e 'pyarrow.tests.test_json' \
+    -e 'pyarrow.tests.test_jvm' \
+    -e 'pyarrow.tests.test_memory' \
+    -e 'pyarrow.tests.test_misc' \
+    -e 'pyarrow.tests.test_orc' \
+    -e 'pyarrow.tests.test_pandas' \
+    -e 'pyarrow.tests.test_plasma' \
+    -e 'pyarrow.tests.test_plasma_tf_op' \
+    -e 'pyarrow.tests.test_scalars' \
+    -e 'pyarrow.tests.test_schema' \
+    -e 'pyarrow.tests.test_serialization_deprecated' \
+    -e 'pyarrow.tests.test_serialization' \
+    -e 'pyarrow.tests.test_sparse_tensor' \
+    -e 'pyarrow.tests.test_strategies' \
+    -e 'pyarrow.tests.test_table' \
+    -e 'pyarrow.tests.test_tensor' \
+    -e 'pyarrow.tests.test_types' \
+    -e 'pyarrow.tests.test_util' \
+    -e 'pyarrow.tests.util' \
+    -e 'pyarrow.cuda'}
+
 #--------------------------------------------------------------------
 
 %changelog
+* Sun Aug 21 2022  Kaleb S. KEITHLEY <kkeithle [at] redhat.com> - 8.0.1-3
+- Arrow 8.0.1, cleanups from Benjamin A. Beasley <code@musicinmybrain.net>
+
 * Wed Aug 10 2022  Kaleb S. KEITHLEY <kkeithle [at] redhat.com> - 8.0.1-2
 - Arrow 8.0.1, enable python, i.e. python3-pyarrow, subpackage
 
