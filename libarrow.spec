@@ -31,7 +31,7 @@
 
 Name:		libarrow
 Version:	9.0.0
-Release:	3%{?dist}
+Release:	4%{?dist}
 Summary:	A toolbox for accelerated data interchange and in-memory processing
 License:	ASL 2.0
 URL:		https://arrow.apache.org/
@@ -855,6 +855,9 @@ export LD_LIBRARY_PATH='%{buildroot}%{_libdir}'
 #--------------------------------------------------------------------
 
 %changelog
+* Mon Aug 22 2022 Benjamin A. Beasley <code@musicinmybrain.net> - 9.0.0-4
+- Rebuilt for grpc 1.48.0
+
 * Wed Aug 17 2022 Benjamin A. Beasley <code@musicinmybrain.net> - 9.0.0-3
 - Use %%pyproject_save_files to fix pyarrow metadata
 - Use generated BR’s for pyarrow
