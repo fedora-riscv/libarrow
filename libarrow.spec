@@ -31,7 +31,7 @@
 
 Name:		libarrow
 Version:	9.0.0
-Release:	5%{?dist}
+Release:	6%{?dist}
 Summary:	A toolbox for accelerated data interchange and in-memory processing
 License:	ASL 2.0
 URL:		https://arrow.apache.org/
@@ -859,6 +859,9 @@ export LD_LIBRARY_PATH='%{buildroot}%{_libdir}'
 #--------------------------------------------------------------------
 
 %changelog
+* Sun Sep 4 2022  Kaleb S. KEITHLEY <kkeithle [at] redhat.com> - 9.0.0-6
+- Arrow 9.0.0, rebuild with liborc 1.8.0
+
 * Mon Aug 22 2022 Benjamin A. Beasley <code@musicinmybrain.net> - 9.0.0-5
 - Update pyarrow test patch (PR#13904)
 
