@@ -31,7 +31,7 @@
 
 Name:		libarrow
 Version:	9.0.0
-Release:	6%{?dist}
+Release:	7%{?dist}
 Summary:	A toolbox for accelerated data interchange and in-memory processing
 License:	ASL 2.0
 URL:		https://arrow.apache.org/
