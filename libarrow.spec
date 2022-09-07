@@ -31,7 +31,7 @@
 
 Name:		libarrow
 Version:	9.0.0
-Release:	5%{?dist}
+Release:	7%{?dist}
 Summary:	A toolbox for accelerated data interchange and in-memory processing
 License:	ASL 2.0
 URL:		https://arrow.apache.org/
@@ -42,7 +42,8 @@ Source0:	https://dist.apache.org/repos/dist/release/arrow/arrow-%{version}/apach
 # Fixes https://issues.apache.org/jira/browse/ARROW-17389
 #
 # Patch squashed to apply cleanly to 9.0.0.
-Patch:          pr-13904-squashed.patch
+Patch0001:	pr-13904-squashed.patch
+Patch0002:	cpp-cmake_modules-ThirdpartyToolchain.cmake.patch
 # Apache ORC (liborc) has numerous compile errors and apparently assumes
 # a 64-bit build and runtime environment. This is only consumer of the liborc
 # package, and in turn the only consumer of this and liborc is Ceph, which
@@ -849,6 +850,12 @@ export LD_LIBRARY_PATH='%{buildroot}%{_libdir}'
 #--------------------------------------------------------------------
 
 %changelog
+* Wed Sep 7 2022  Kaleb S. KEITHLEY <kkeithle [at] redhat.com> - 9.0.0-7
+- Arrow 9.0.0, rebuild with xsimd 9.0.1
+
+* Sun Sep 4 2022  Kaleb S. KEITHLEY <kkeithle [at] redhat.com> - 9.0.0-6
+- Arrow 9.0.0, rebuild with liborc 1.8.0
+
 * Mon Aug 22 2022 Benjamin A. Beasley <code@musicinmybrain.net> - 9.0.0-5
 - Update pyarrow test patch (PR#13904)
 
