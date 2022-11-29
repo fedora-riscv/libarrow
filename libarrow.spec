@@ -31,7 +31,7 @@
 
 Name:		libarrow
 Version:	9.0.0
-Release:	7%{?dist}
+Release:	7.rv64%{?dist}
 Summary:	A toolbox for accelerated data interchange and in-memory processing
 License:	Apache-2.0
 URL:		https://arrow.apache.org/
@@ -743,6 +743,11 @@ pushd python >/dev/null
 popd >/dev/null
 
 %build
+
+%ifarch riscv64
+%global optflags %(echo %{optflags} -pthread)
+%endif
+
 pushd cpp
 %cmake \
 %if %{with use_flight}
@@ -766,6 +771,9 @@ pushd cpp
   -Dxsimd_SOURCE="SYSTEM" \
 %if %{with use_s3}
   -DARROW_S3:BOOL=ON \
+%endif
+%ifarch riscv64
+  -DARROW_SIMD_LEVEL=NONE \
 %endif
   -DARROW_WITH_BROTLI:BOOL=ON \
   -DARROW_WITH_BZ2:BOOL=ON \
@@ -860,6 +868,9 @@ export LD_LIBRARY_PATH='%{buildroot}%{_libdir}'
 #--------------------------------------------------------------------
 
 %changelog
+* Tue Nov 29 2022 Liu Yang <Yang.Liu.sn [at] gmail.com>
+- Modify to build on riscv64.
+
 * Fri Nov 11 2022  Kaleb S. KEITHLEY <kkeithle [at] redhat.com>
 - SPDX migration
 
