@@ -31,7 +31,7 @@
 
 Name:		libarrow
 Version:	11.0.0
-Release:	1%{?dist}
+Release:	1.rv64%{?dist}
 Summary:	A toolbox for accelerated data interchange and in-memory processing
 License:	Apache-2.0
 URL:		https://arrow.apache.org/
@@ -755,6 +755,9 @@ pushd cpp
   -DPARQUET_REQUIRE_ENCRYPTION:BOOL=ON \
   -DPythonInterp_FIND_VERSION:BOOL=ON \
   -DPythonInterp_FIND_VERSION_MAJOR=3 \
+%ifarch riscv64
+  -DARROW_CXXFLAGS='-pthread' \
+%endif
 %if %{with use_ninja}
   -GNinja
 %endif
@@ -792,6 +795,9 @@ export \
   PYARROW_WITH_PARQUET_ENCRYPTION=1 \
   %{?with_use_gandiva:PYARROW_WITH_GANDIVA=1} \
   PYARROW_PARALLEL=%{_smp_build_ncpus} \
+%ifarch riscv64
+  PYARROW_CMAKE_OPTIONS="-DARROW_SIMD_LEVEL=NONE" \
+%endif
   PYARROW_INSTALL_TESTS=0
 %pyproject_wheel
 popd
@@ -836,6 +842,9 @@ export LD_LIBRARY_PATH='%{buildroot}%{_libdir}'
 #--------------------------------------------------------------------
 
 %changelog
+* Wed May 10 2023  Liu Yang <Yang.Liu.sn [at] gmail.com> - 11.0.0-1.rv64
+- Fix build on riscv64.
+
 * Thu Feb 9 2023  Kaleb S. KEITHLEY <kkeithle [at] redhat.com> - 11.0.0-1
 - Arrow 11.0.0 GA
 
